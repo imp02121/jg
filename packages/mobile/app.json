@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "The History Gauntlet",
+    "slug": "history-gauntlet",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "history-gauntlet",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.historygauntlet.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1a1a2e"
+      },
+      "package": "com.historygauntlet.app"
+    }
+  }
+}

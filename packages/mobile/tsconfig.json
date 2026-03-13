@@ -1,8 +1,10 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "rootDir": "./src",
     "outDir": "./dist",
+    "jsx": "react-jsx",
+    "lib": ["ES2022"],
+    "types": ["react"],
     "paths": {
       "@history-gauntlet/shared": ["../../shared/src/index.ts"],
       "@history-gauntlet/shared/*": ["../../shared/src/*"]
