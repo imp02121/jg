@@ -8,6 +8,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { errorHandler } from "./middleware/error-handler";
+import { adminQuestionsRoute } from "./routes/admin-questions";
 import { healthRoute } from "./routes/health";
 import type { Env } from "./types/env";
 
@@ -25,6 +26,7 @@ app.use("*", cors());
 /* ------------------------------------------------------------------ */
 
 app.route("/api/health", healthRoute);
+app.route("/api/admin/questions", adminQuestionsRoute);
 
 /* ------------------------------------------------------------------ */
 /* Error handling                                                     */
