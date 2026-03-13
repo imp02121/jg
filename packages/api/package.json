@@ -8,7 +8,9 @@
     "dev": "wrangler dev",
     "lint": "biome check src/",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.scripts.json",
+    "seed:questions": "tsx src/scripts/seed-questions.ts",
+    "seed:daily": "tsx src/scripts/seed-daily-game.ts"
   },
   "dependencies": {
     "@history-gauntlet/shared": "workspace:*",
@@ -17,6 +19,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250109.0",
+    "@types/node": "^25.5.0",
     "typescript": "^5.7.3",
     "vitest": "^3.1.0",
     "wrangler": "^4.14.0"

@@ -7,7 +7,36 @@ compatibility_flags = ["nodejs_compat"]
 binding = "DB"
 database_name = "history-gauntlet-db"
 database_id = "placeholder-replace-with-real-id"
+migrations_dir = "src/db/migrations"
 
 [[r2_buckets]]
 binding = "GAME_BUCKET"
 bucket_name = "history-gauntlet-games"
+
+# --- Development environment overrides ---
+[env.dev]
+name = "history-gauntlet-api-dev"
+
+[[env.dev.d1_databases]]
+binding = "DB"
+database_name = "history-gauntlet-db-dev"
+database_id = "placeholder-replace-with-dev-id"
+migrations_dir = "src/db/migrations"
+
+[[env.dev.r2_buckets]]
+binding = "GAME_BUCKET"
+bucket_name = "history-gauntlet-games-dev"
+
+# --- Staging environment overrides ---
+[env.staging]
+name = "history-gauntlet-api-staging"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "history-gauntlet-db-staging"
+database_id = "placeholder-replace-with-staging-id"
+migrations_dir = "src/db/migrations"
+
+[[env.staging.r2_buckets]]
+binding = "GAME_BUCKET"
+bucket_name = "history-gauntlet-games-staging"

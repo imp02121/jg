@@ -2,14 +2,12 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "types": ["@cloudflare/workers-types"],
-    "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx",
+    "types": ["node"],
     "paths": {
       "@history-gauntlet/shared": ["../../shared/src/index.ts"],
       "@history-gauntlet/shared/*": ["../../shared/src/*"]
     }
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "src/scripts"]
+  "include": ["src/scripts/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }
