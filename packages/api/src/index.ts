@@ -8,7 +8,9 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { errorHandler } from "./middleware/error-handler";
+import { adminGamesRoute } from "./routes/admin-games";
 import { adminQuestionsRoute } from "./routes/admin-questions";
+import { gamesRoute } from "./routes/games";
 import { healthRoute } from "./routes/health";
 import type { Env } from "./types/env";
 
@@ -27,6 +29,8 @@ app.use("*", cors());
 
 app.route("/api/health", healthRoute);
 app.route("/api/admin/questions", adminQuestionsRoute);
+app.route("/api/admin/games", adminGamesRoute);
+app.route("/api/games", gamesRoute);
 
 /* ------------------------------------------------------------------ */
 /* Error handling                                                     */
