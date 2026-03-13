@@ -46,6 +46,21 @@ export async function saveResult(result: LocalGameResult): Promise<void> {
 }
 
 /**
+ * Get a game result by its unique id.
+ * Returns null if no result exists with that id.
+ */
+export async function getResultById(id: string): Promise<LocalGameResult | null> {
+  const db = await getDatabase();
+  const row = await db.getFirstAsync<GameResultRow>("SELECT * FROM game_results WHERE id = ?", [
+    id,
+  ]);
+  if (row === null) {
+    return null;
+  }
+  return mapRowToResult(row);
+}
+
+/**
  * Get a game result for a specific date.
  * Returns null if no result exists for that date.
  */
