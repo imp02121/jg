@@ -6,7 +6,7 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "history-gauntlet-db"
-database_id = "placeholder-replace-with-real-id"
+database_id = "88eb1081-2b0e-4337-a27d-4abf1f16035b"
 migrations_dir = "src/db/migrations"
 
 [[r2_buckets]]

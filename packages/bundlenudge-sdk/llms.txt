@@ -1,0 +1,99 @@
+# @bundlenudge/sdk
+
+> React Native SDK for OTA updates. Check, download, and apply JavaScript bundle updates.
+
+## Purpose
+
+Client-side SDK for React Native apps to receive over-the-air updates. Handles update checking, bundle downloading with resume support, hash verification, update application, and automatic rollback on crashes.
+
+## Key Exports
+
+- `BundleNudge` - Main class with static methods
+- `configure()` - Set API key and options
+- `checkForUpdate()` - Check for available updates
+- `downloadUpdate()` - Download update bundle
+- `applyUpdate()` - Apply downloaded update
+- `rollback()` - Manual rollback to previous version
+
+## Usage Pattern
+
+```typescript
+import { BundleNudge } from '@bundlenudge/sdk';
+
+// Configure on app start
+BundleNudge.configure({
+  apiKey: 'your-api-key',
+  channel: 'production',
+});
+
+// Check for updates
+const result = await BundleNudge.checkForUpdate();
+if (result.updateAvailable) {
+  await BundleNudge.downloadUpdate(result.update);
+  BundleNudge.applyUpdate(); // Takes effect on next restart
+}
+```
+
+## File Structure
+
+```
+src/
+├── index.ts              # Public exports
+├── BundleNudge.ts        # Main class
+├── types.ts              # Type definitions
+├── updater.ts            # Update check logic
+├── download.ts           # Download with resume
+├── storage.ts            # Bundle file management
+├── rollback.ts           # Rollback detection
+├── health.ts             # Crash detection
+└── internal/
+    ├── api.ts            # HTTP client
+    └── hash.ts           # SHA256 verification
+```
+
+## Dependencies
+
+- `@bundlenudge/shared` - Types and schemas
+- `react-native-fs` - File system (peer)
+- `react-native` - Platform APIs (peer)
+
+## Key Concepts
+
+### Update Flow
+
+1. `checkForUpdate()` calls API with current version
+2. API returns update info if newer version available
+3. `downloadUpdate()` downloads bundle with hash
+4. Bundle stored locally, hash verified
+5. `applyUpdate()` sets pending flag
+6. On next app restart, new bundle loads
+
+### Rollback Safety
+
+1. Before apply, set "pending update" flag
+2. Apply new bundle
+3. On success, clear flag
+4. If app crashes with flag set → auto rollback
+
+### Offline Support
+
+- Returns cached state if offline
+- Downloads resume from last byte
+- Works completely offline after first download
+
+## Error Handling
+
+- `BundleNudgeError` - Base error class
+- `NetworkError` - Connection issues
+- `BundleCorruptionError` - Hash mismatch
+- `StorageError` - File system issues
+
+All errors include context for debugging.
+
+## Code Conventions
+
+- Max 250 lines per file
+- Max 50 lines per function
+- No `any` types
+- Named exports only
+- Mock native modules in tests

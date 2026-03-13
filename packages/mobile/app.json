@@ -7,6 +7,7 @@
     "scheme": "history-gauntlet",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
+    "plugins": ["@bundlenudge/sdk"],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.historygauntlet.app"

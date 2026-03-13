@@ -9,7 +9,7 @@
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "test": "pnpm -r test",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm --filter @history-gauntlet/shared --filter @history-gauntlet/api --filter @history-gauntlet/mobile --filter @history-gauntlet/dashboard typecheck"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",

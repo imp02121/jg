@@ -52,6 +52,15 @@
     }
   },
   "files": {
-    "ignore": ["node_modules", "dist", "build", ".wrangler", ".expo", "coverage", "*.json"]
+    "ignore": [
+      "node_modules",
+      "dist",
+      "build",
+      ".wrangler",
+      ".expo",
+      "coverage",
+      "*.json",
+      "packages/bundlenudge-sdk"
+    ]
   }
 }

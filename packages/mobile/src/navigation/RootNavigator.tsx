@@ -2,9 +2,10 @@
  * Root stack navigator for The History Gauntlet.
  *
  * Wraps the app in SafeAreaProvider and initializes the local
- * database on startup before rendering screens.
+ * database and BundleNudge OTA updates on startup before rendering screens.
  */
 
+import { notifyAppReady } from "@bundlenudge/sdk";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useEffect, useState } from "react";
@@ -18,6 +19,7 @@ import { HomeScreen } from "../screens/HomeScreen";
 import { ResultsScreen } from "../screens/ResultsScreen";
 import { SplashScreen } from "../screens/SplashScreen";
 import { getDatabase } from "../services/local-db";
+import { initializeOta } from "../services/ota-service";
 import type { RootStackParamList } from "./types";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -26,27 +28,38 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
  * The root navigator containing all screens in the app.
  *
  * Starts on the Splash screen, which handles initial data loading
- * before navigating to Home.  The local SQLite database is initialized
- * before any screen is rendered.
+ * before navigating to Home.  The local SQLite database and BundleNudge
+ * OTA SDK are initialized before any screen is rendered.  After both
+ * complete, notifyAppReady() signals to BundleNudge that the update
+ * (if any) is stable.
  */
 export function RootNavigator(): React.JSX.Element {
   const [dbReady, setDbReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    getDatabase()
-      .then(() => {
-        if (!cancelled) {
-          setDbReady(true);
+
+    async function initialize(): Promise<void> {
+      // Run DB init and OTA init concurrently. Both are designed to
+      // handle their own failures gracefully, so we use allSettled.
+      await Promise.allSettled([getDatabase(), initializeOta()]);
+
+      if (!cancelled) {
+        setDbReady(true);
+
+        // Signal to BundleNudge that the app rendered successfully.
+        // This marks the current bundle as stable. If it fails (e.g.
+        // SDK not initialized), we ignore the error silently.
+        try {
+          await notifyAppReady();
+        } catch {
+          // BundleNudge may not be initialized -- this is fine.
         }
-      })
-      .catch(() => {
-        // DB init failed — still show the app so the splash screen
-        // can handle the error and display an appropriate message.
-        if (!cancelled) {
-          setDbReady(true);
-        }
-      });
+      }
+    }
+
+    void initialize();
+
     return () => {
       cancelled = true;
     };

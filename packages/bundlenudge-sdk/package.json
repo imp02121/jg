@@ -1,0 +1,73 @@
+{
+  "name": "@bundlenudge/sdk",
+  "version": "0.0.1",
+  "description": "React Native SDK for BundleNudge OTA updates",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "react-native": "src/index.ts",
+  "exports": {
+    ".": {
+      "react-native": "./src/index.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./expo/plugin": {
+      "import": "./dist/expo/plugin.mjs",
+      "require": "./dist/expo/plugin.js",
+      "types": "./dist/expo/plugin.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts src/expo/plugin.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts src/expo/plugin.ts --format cjs,esm --dts --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/"
+  },
+  "files": [
+    "dist",
+    "src",
+    "ios",
+    "android",
+    "BundleNudge.podspec",
+    "app.plugin.js",
+    "react-native.config.js"
+  ],
+  "expo": {
+    "plugins": [
+      "./app.plugin.js"
+    ]
+  },
+  "codegenConfig": {
+    "name": "BundleNudgeSpec",
+    "type": "modules",
+    "jsSrcsDir": "src/specs",
+    "android": {
+      "javaPackageName": "com.bundlenudge"
+    }
+  },
+  "peerDependencies": {
+    "@react-native-async-storage/async-storage": ">=1.19.0",
+    "react": ">=18.0.0",
+    "react-native": ">=0.72.0"
+  },
+  "license": "BSL-1.1",
+  "dependencies": {
+    "zod": "^3.23.0"
+  },
+  "optionalDependencies": {
+    "@expo/config-plugins": "^7.0.0 || ^8.0.0"
+  },
+  "devDependencies": {
+    "@expo/config-plugins": "^8.0.0",
+    "@react-native-async-storage/async-storage": "^1.23.0",
+    "@types/react": "^18.2.0",
+    "@types/react-native": "^0.72.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  }
+}

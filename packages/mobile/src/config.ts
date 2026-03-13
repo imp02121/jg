@@ -15,13 +15,19 @@ interface AppConfig {
   readonly apiBaseUrl: string;
   /** Current environment name. */
   readonly environment: Environment;
+  /** BundleNudge app ID from the dashboard. */
+  readonly bundleNudgeAppId: string;
+  /** BundleNudge API URL (defaults to production). */
+  readonly bundleNudgeApiUrl: string;
+  /** Whether to enable BundleNudge debug logging. */
+  readonly bundleNudgeDebug: boolean;
 }
 
 /** Default API URLs for each environment. */
 const API_URLS: Readonly<Record<Environment, string>> = {
   development: "http://localhost:8787",
-  staging: "https://staging-api.historygauntlet.com",
-  production: "https://api.historygauntlet.com",
+  staging: "https://history-gauntlet-api.isak-parild.workers.dev",
+  production: "https://history-gauntlet-api.isak-parild.workers.dev",
 };
 
 /**
@@ -55,12 +61,45 @@ function resolveApiBaseUrl(environment: Environment): string {
   return API_URLS[environment];
 }
 
+/**
+ * Resolve the BundleNudge app ID from the EXPO_PUBLIC_BUNDLENUDGE_APP_ID
+ * environment variable. Returns an empty string if not set.
+ */
+function resolveBundleNudgeAppId(): string {
+  const raw =
+    typeof process !== "undefined" && process.env
+      ? process.env.EXPO_PUBLIC_BUNDLENUDGE_APP_ID
+      : undefined;
+
+  return typeof raw === "string" && raw.length > 0 ? raw : "";
+}
+
+/**
+ * Resolve the BundleNudge API URL from the EXPO_PUBLIC_BUNDLENUDGE_API_URL
+ * environment variable. Falls back to the production default.
+ */
+function resolveBundleNudgeApiUrl(): string {
+  const override =
+    typeof process !== "undefined" && process.env
+      ? process.env.EXPO_PUBLIC_BUNDLENUDGE_API_URL
+      : undefined;
+
+  if (typeof override === "string" && override.length > 0) {
+    return override.replace(/\/+$/, "");
+  }
+
+  return "https://api.bundlenudge.com";
+}
+
 /** Build the configuration once and freeze it. */
 function buildConfig(): AppConfig {
   const environment = resolveEnvironment();
   return Object.freeze({
     apiBaseUrl: resolveApiBaseUrl(environment),
     environment,
+    bundleNudgeAppId: resolveBundleNudgeAppId(),
+    bundleNudgeApiUrl: resolveBundleNudgeApiUrl(),
+    bundleNudgeDebug: environment !== "production",
   });
 }
 
