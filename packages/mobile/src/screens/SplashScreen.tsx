@@ -24,9 +24,9 @@ import {
   letterSpacingWide,
 } from "../theme/typography";
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "https://api.historygauntlet.com";
+import { config } from "../config";
 
-const api = createApiClient({ baseUrl: API_BASE_URL });
+const api = createApiClient({ baseUrl: config.apiBaseUrl });
 
 type LoadResult = { status: "ok" } | { status: "error"; message: string };
 
