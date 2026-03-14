@@ -5,7 +5,6 @@
  * database and BundleNudge OTA updates on startup before rendering screens.
  */
 
-import { notifyAppReady } from "@bundlenudge/sdk";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useEffect, useState } from "react";
@@ -19,7 +18,7 @@ import { HomeScreen } from "../screens/HomeScreen";
 import { ResultsScreen } from "../screens/ResultsScreen";
 import { SplashScreen } from "../screens/SplashScreen";
 import { getDatabase } from "../services/local-db";
-import { initializeOta } from "../services/ota-service";
+import { initializeOta, safeNotifyAppReady } from "../services/ota-service";
 import type { RootStackParamList } from "./types";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -47,14 +46,7 @@ export function RootNavigator(): React.JSX.Element {
       if (!cancelled) {
         setDbReady(true);
 
-        // Signal to BundleNudge that the app rendered successfully.
-        // This marks the current bundle as stable. If it fails (e.g.
-        // SDK not initialized), we ignore the error silently.
-        try {
-          await notifyAppReady();
-        } catch {
-          // BundleNudge may not be initialized -- this is fine.
-        }
+        await safeNotifyAppReady();
       }
     }
 

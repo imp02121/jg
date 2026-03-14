@@ -1,13 +1,11 @@
 /**
  * Small version display for the home screen footer.
  *
- * Uses the useBundleVersion hook from BundleNudge to show the current
- * bundle version and whether the running code was delivered via OTA.
- * Renders as subtle, understated text that does not distract from
- * gameplay.
+ * Dynamically loads BundleNudge to avoid crashing when the native
+ * module is not linked. Shows "v1.0.0" as fallback.
  */
 
-import { useBundleVersion } from "@bundlenudge/sdk";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { textMuted, textSubtle } from "../../theme/colors";
@@ -19,16 +17,33 @@ import {
   letterSpacingNormal,
 } from "../../theme/typography";
 
-/**
- * Displays the current bundle version and an "OTA" indicator when
- * the app is running an over-the-air update rather than the stock
- * embedded bundle. Intended for use as a footer element.
- */
-export function VersionDisplay(): React.JSX.Element {
-  const { version, isOtaUpdate } = useBundleVersion();
+interface VersionInfo {
+  readonly version: string | null;
+  readonly isOtaUpdate: boolean;
+}
 
-  const versionLabel = version ?? "stock";
-  const suffix = isOtaUpdate ? " (OTA)" : "";
+export function VersionDisplay(): React.JSX.Element {
+  const [info, setInfo] = useState<VersionInfo>({ version: null, isOtaUpdate: false });
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadVersion(): Promise<void> {
+      try {
+        const sdk = await import("@bundlenudge/sdk");
+        const release = sdk.BundleNudge.getInstance().getReleaseInfo();
+        if (!cancelled) {
+          setInfo({ version: release.version, isOtaUpdate: release.isOtaUpdate });
+        }
+      } catch {
+        // SDK not available
+      }
+    }
+    void loadVersion();
+    return () => { cancelled = true; };
+  }, []);
+
+  const versionLabel = info.version ?? "1.0.0";
+  const suffix = info.isOtaUpdate ? " (OTA)" : "";
 
   return (
     <View style={styles.container}>

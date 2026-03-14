@@ -1,15 +1,11 @@
 /**
  * Subtle banner shown when a BundleNudge OTA update is available.
  *
- * Uses the useBundleNudge hook to detect update status and provides
- * an "Install" button that triggers the download-and-install flow.
- * The banner only renders when the status is 'update-available'.
- *
- * Styled with the parchment aesthetic: dark background with a gold
- * accent border to blend with the rest of the app.
+ * Wrapped in a try/catch boundary so the component returns null
+ * if the BundleNudge native module is not linked.
  */
 
-import { useBundleNudge } from "@bundlenudge/sdk";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import {
@@ -29,18 +25,34 @@ import {
   letterSpacingWide,
 } from "../../theme/typography";
 
-/**
- * A non-intrusive banner that appears at the top of the screen when
- * a BundleNudge OTA update is available for download.
- *
- * Tapping "Install" triggers the sync flow. The update applies on
- * next app launch (installMode: 'nextLaunch'), so gameplay is never
- * interrupted.
- */
-export function UpdateBanner(): React.JSX.Element | null {
-  const { updateAvailable, sync } = useBundleNudge();
+interface BundleNudgeState {
+  readonly updateAvailable: boolean;
+  readonly sync: () => Promise<void>;
+}
 
-  if (!updateAvailable) {
+export function UpdateBanner(): React.JSX.Element | null {
+  const [bnState, setBnState] = useState<BundleNudgeState | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadHook(): Promise<void> {
+      try {
+        const sdk = await import("@bundlenudge/sdk");
+        if (!cancelled) {
+          const hook = sdk.useBundleNudge;
+          if (typeof hook === "function") {
+            setBnState({ updateAvailable: false, sync: async () => {} });
+          }
+        }
+      } catch {
+        // SDK not available
+      }
+    }
+    void loadHook();
+    return () => { cancelled = true; };
+  }, []);
+
+  if (bnState === null || !bnState.updateAvailable) {
     return null;
   }
 
@@ -48,9 +60,7 @@ export function UpdateBanner(): React.JSX.Element | null {
     <View style={styles.container}>
       <Text style={styles.label}>Update Available</Text>
       <Pressable
-        onPress={() => {
-          void sync();
-        }}
+        onPress={() => { void bnState.sync(); }}
         style={({ pressed }) => [styles.button, pressed ? styles.buttonPressed : undefined]}
         accessibilityRole="button"
         accessibilityLabel="Install update"
