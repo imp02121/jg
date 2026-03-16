@@ -6,22 +6,25 @@
  * all state management.
  */
 
-import { useCallback, useEffect } from "react";
-import { Alert, ScrollView, StyleSheet, View } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { DifficultyBadge } from "../components/common/DifficultyBadge";
 import { GauntletButton } from "../components/common/GauntletButton";
+import { LeaveGameModal } from "../components/common/LeaveGameModal";
 import { LoadingSpinner } from "../components/common/LoadingSpinner";
 import { FactReveal } from "../components/game/FactReveal";
 import { OptionButton } from "../components/game/OptionButton";
 import { ProgressBar } from "../components/game/ProgressBar";
 import { QuestionCard } from "../components/game/QuestionCard";
 import { ScoreHeader } from "../components/game/ScoreHeader";
+import { CrossIcon } from "../components/icons";
 import { useGameLogic } from "../hooks/use-game-logic";
 import type { GameScreenProps } from "../navigation/types";
 import { useGameStore } from "../stores/game-store";
-import { backgroundPrimary } from "../theme/colors";
-import { maxContentWidth, spacingMd, spacingXl, spacingXxl } from "../theme/spacing";
+import { backgroundPrimary, textMuted } from "../theme/colors";
+import { maxContentWidth, spacingMd, spacingSection, spacingXl, spacingXxl } from "../theme/spacing";
 
 export function GameScreen({ navigation, route }: GameScreenProps): React.JSX.Element {
   const { date, selectedTiers } = route.params;
@@ -44,6 +47,31 @@ export function GameScreen({ navigation, route }: GameScreenProps): React.JSX.El
     [navigation, resetGame],
   );
 
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const pendingNavAction = useRef<Readonly<{ type: string; payload?: object; source?: string; target?: string }> | null>(null);
+
+  const handleQuit = useCallback(() => {
+    pendingNavAction.current = null;
+    setShowLeaveModal(true);
+  }, []);
+
+  const handleStay = useCallback(() => {
+    pendingNavAction.current = null;
+    setShowLeaveModal(false);
+  }, []);
+
+  const handleLeave = useCallback(() => {
+    setShowLeaveModal(false);
+    resetGame();
+
+    if (pendingNavAction.current !== null) {
+      navigation.dispatch(pendingNavAction.current);
+      pendingNavAction.current = null;
+    } else {
+      navigation.navigate("Home");
+    }
+  }, [navigation, resetGame]);
+
   const { loading, error, handleSelectAnswer, handleNext } = useGameLogic({
     date,
     selectedTiers,
@@ -53,26 +81,15 @@ export function GameScreen({ navigation, route }: GameScreenProps): React.JSX.El
   // Warn on back navigation during an active game
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", (e) => {
-      // Allow navigation after game completion
       if (loading) return;
 
       e.preventDefault();
-
-      Alert.alert("Leave Game?", "Your progress will be lost if you leave now.", [
-        { text: "Stay", style: "cancel" },
-        {
-          text: "Leave",
-          style: "destructive",
-          onPress: () => {
-            resetGame();
-            navigation.dispatch(e.data.action);
-          },
-        },
-      ]);
+      pendingNavAction.current = e.data.action;
+      setShowLeaveModal(true);
     });
 
     return unsubscribe;
-  }, [navigation, loading, resetGame]);
+  }, [navigation, loading]);
 
   if (loading) {
     return (
@@ -102,48 +119,67 @@ export function GameScreen({ navigation, route }: GameScreenProps): React.JSX.El
   const total = totalQuestions();
   const revealed = isRevealed;
   const last = isLastQuestion();
+  const insets = useSafeAreaInsets();
 
   return (
-    <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
-      <ScoreHeader
-        currentQuestion={currentQuestionIndex + 1}
-        totalQuestions={total}
-        score={score}
-        streak={streak}
-        testID="score-header"
-      />
+    <View style={styles.outer}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + spacingXl }]}
+      >
+        <Pressable
+          onPress={handleQuit}
+          style={styles.quitButton}
+          hitSlop={12}
+          testID="quit-btn"
+        >
+          <CrossIcon size={20} color={textMuted} />
+        </Pressable>
 
-      <ProgressBar current={currentQuestionIndex} total={total} testID="progress-bar" />
+        <ScoreHeader
+          currentQuestion={currentQuestionIndex + 1}
+          totalQuestions={total}
+          score={score}
+          streak={streak}
+          testID="score-header"
+        />
 
-      <DifficultyBadge tier={question.difficulty} testID="difficulty-badge" />
+        <ProgressBar current={currentQuestionIndex} total={total} testID="progress-bar" />
 
-      <QuestionCard question={question.question} testID="question-card" />
+        <DifficultyBadge tier={question.difficulty} testID="difficulty-badge" />
 
-      <View style={styles.options}>
-        {question.options.map((option, idx) => (
-          <OptionButton
-            key={`opt-${String(idx)}`}
-            label={option}
-            index={idx}
-            state={getOptionState(idx, selectedAnswer, question.correctIndex, revealed)}
-            onPress={handleSelectAnswer}
-            disabled={revealed}
-            testID={`option-${String(idx)}`}
-          />
-        ))}
-      </View>
+        <QuestionCard question={question.question} testID="question-card" />
 
-      <FactReveal fact={question.fact} visible={revealed} testID="fact-reveal" />
+        <View style={styles.options}>
+          {question.options.map((option, idx) => (
+            <OptionButton
+              key={`opt-${String(idx)}`}
+              label={option}
+              index={idx}
+              state={getOptionState(idx, selectedAnswer, question.correctIndex, revealed)}
+              onPress={handleSelectAnswer}
+              disabled={revealed}
+              testID={`option-${String(idx)}`}
+            />
+          ))}
+        </View>
+
+        <FactReveal fact={question.fact} visible={revealed} testID="fact-reveal" />
+      </ScrollView>
 
       {revealed && (
-        <GauntletButton
-          title={last ? "SEE RESULTS" : "NEXT QUESTION"}
-          onPress={handleNext}
-          variant="primary"
-          testID="next-btn"
-        />
+        <View style={[styles.footer, { paddingBottom: insets.bottom + spacingXl }]}>
+          <GauntletButton
+            title={last ? "SEE RESULTS" : "NEXT QUESTION"}
+            onPress={handleNext}
+            variant="primary"
+            testID="next-btn"
+          />
+        </View>
       )}
-    </ScrollView>
+
+      <LeaveGameModal visible={showLeaveModal} onStay={handleStay} onLeave={handleLeave} />
+    </View>
   );
 }
 
@@ -167,20 +203,34 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  scrollView: {
+  outer: {
     flex: 1,
     backgroundColor: backgroundPrimary,
   },
+  scrollView: {
+    flex: 1,
+  },
   content: {
     paddingHorizontal: spacingXxl,
-    paddingTop: spacingXxl + spacingXl,
-    paddingBottom: spacingXxl + spacingXl,
+    paddingBottom: spacingXl,
     gap: spacingXl,
     maxWidth: maxContentWidth,
     alignSelf: "center",
     width: "100%",
   },
+  quitButton: {
+    alignSelf: "flex-start",
+    padding: spacingMd,
+  },
   options: {
     gap: spacingMd,
+  },
+  footer: {
+    paddingHorizontal: spacingXxl,
+    paddingTop: spacingXl,
+    alignItems: "center",
+    maxWidth: maxContentWidth,
+    alignSelf: "center",
+    width: "100%",
   },
 });

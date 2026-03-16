@@ -6,7 +6,8 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { DifficultyTier } from "@history-gauntlet/shared";
 import { DIFFICULTY_TIER_VALUES } from "@history-gauntlet/shared";
@@ -20,7 +21,7 @@ import type { DifficultySelectScreenProps } from "../navigation/types";
 import { getCachedGame } from "../services/cache-service";
 import { getSelectedTiers, setSelectedTiers } from "../stores/settings-store";
 import { backgroundPrimary, textMuted, textPrimary, wrongText } from "../theme/colors";
-import { maxContentWidth, spacingXl, spacingXxl } from "../theme/spacing";
+import { maxContentWidth, spacingMassive, spacingSection, spacingXl, spacingXxl } from "../theme/spacing";
 import {
   fontFamilyPrimary,
   fontSizeBase,
@@ -80,6 +81,8 @@ export function DifficultySelectScreen({
     });
   }, [navigation, selectedTiersState]);
 
+  const insets = useSafeAreaInsets();
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -89,32 +92,33 @@ export function DifficultySelectScreen({
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.content}>
-        <ColumnsIcon size={36} color={textPrimary} />
-        <Text style={styles.title}>Choose Your Challenge</Text>
-        <Text style={styles.subtitle}>Select which tiers to include</Text>
+    <ScrollView
+      style={styles.scrollView}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacingSection }]}
+    >
+      <ColumnsIcon size={36} color={textPrimary} />
+      <Text style={styles.title}>Choose Your Challenge</Text>
+      <Text style={styles.subtitle}>Select which tiers to include</Text>
 
-        <OrnamentDivider width={120} />
+      <OrnamentDivider width={120} />
 
-        <TierToggle
-          selectedTiers={selectedTiersState}
-          onToggle={handleToggle}
-          testID="tier-toggle"
-        />
+      <TierToggle
+        selectedTiers={selectedTiersState}
+        onToggle={handleToggle}
+        testID="tier-toggle"
+      />
 
-        <OrnamentDivider width={120} />
+      <OrnamentDivider width={120} />
 
-        {error !== null && <Text style={styles.error}>{error}</Text>}
+      {error !== null && <Text style={styles.error}>{error}</Text>}
 
-        <GauntletButton
-          title="BEGIN THE TRIAL"
-          onPress={() => void handleStart()}
-          variant="primary"
-          testID="begin-trial-btn"
-        />
-      </View>
-    </View>
+      <GauntletButton
+        title="BEGIN THE TRIAL"
+        onPress={() => void handleStart()}
+        variant="primary"
+        testID="begin-trial-btn"
+      />
+    </ScrollView>
   );
 }
 
@@ -133,15 +137,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  container: {
+  scrollView: {
     flex: 1,
     backgroundColor: backgroundPrimary,
-    justifyContent: "center",
   },
   content: {
     alignItems: "center",
     paddingHorizontal: spacingXxl,
-    gap: spacingXl,
+    paddingBottom: spacingSection,
+    gap: spacingMassive,
     maxWidth: maxContentWidth,
     alignSelf: "center",
     width: "100%",

@@ -17,7 +17,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 export type RootStackParamList = {
   Splash: undefined;
   Home: undefined;
-  DifficultySelect: undefined;
+  TodaysGame: undefined;
   Game: {
     /** The date of the daily game in YYYY-MM-DD format. */
     date: string;
@@ -37,11 +37,8 @@ export type SplashScreenProps = NativeStackScreenProps<RootStackParamList, "Spla
 /** Typed navigation props for the Home screen. */
 export type HomeScreenProps = NativeStackScreenProps<RootStackParamList, "Home">;
 
-/** Typed navigation props for the DifficultySelect screen. */
-export type DifficultySelectScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  "DifficultySelect"
->;
+/** Typed navigation props for the TodaysGame screen. */
+export type TodaysGameScreenProps = NativeStackScreenProps<RootStackParamList, "TodaysGame">;
 
 /** Typed navigation props for the Game screen. */
 export type GameScreenProps = NativeStackScreenProps<RootStackParamList, "Game">;

@@ -10,10 +10,14 @@ import { getAllResults } from "./game-storage";
 /** Aggregate stats across all games ever played. */
 export interface AllTimeStats {
   readonly totalGames: number;
-  readonly averageScore: number;
-  readonly bestScore: number;
+  /** Average accuracy as a percentage (0-100). */
+  readonly averageAccuracy: number;
+  /** Best single-game accuracy as a percentage (0-100). */
+  readonly bestAccuracy: number;
   readonly longestStreak: number;
   readonly totalQuestionsAnswered: number;
+  /** Current daily streak (consecutive days played). */
+  readonly dailyStreak: number;
 }
 
 /** Per-tier accuracy statistics. */
@@ -34,22 +38,24 @@ export async function getAllTimeStats(): Promise<AllTimeStats> {
   if (results.length === 0) {
     return {
       totalGames: 0,
-      averageScore: 0,
-      bestScore: 0,
+      averageAccuracy: 0,
+      bestAccuracy: 0,
       longestStreak: 0,
       totalQuestionsAnswered: 0,
+      dailyStreak: 0,
     };
   }
 
-  let totalScore = 0;
-  let bestScore = 0;
+  let totalAccuracy = 0;
+  let bestAccuracy = 0;
   let longestStreak = 0;
   let totalQuestionsAnswered = 0;
 
   for (const result of results) {
-    totalScore += result.score;
-    if (result.score > bestScore) {
-      bestScore = result.score;
+    const accuracy = result.totalQuestions > 0 ? (result.score / result.totalQuestions) * 100 : 0;
+    totalAccuracy += accuracy;
+    if (accuracy > bestAccuracy) {
+      bestAccuracy = accuracy;
     }
     if (result.bestStreak > longestStreak) {
       longestStreak = result.bestStreak;
@@ -57,13 +63,37 @@ export async function getAllTimeStats(): Promise<AllTimeStats> {
     totalQuestionsAnswered += result.totalQuestions;
   }
 
+  const dailyStreak = computeDailyStreak(results);
+
   return {
     totalGames: results.length,
-    averageScore: totalScore / results.length,
-    bestScore,
+    averageAccuracy: totalAccuracy / results.length,
+    bestAccuracy,
     longestStreak,
     totalQuestionsAnswered,
+    dailyStreak,
   };
+}
+
+/**
+ * Compute current daily streak from results without an extra DB query.
+ */
+function computeDailyStreak(results: LocalGameResult[]): number {
+  const playedDates = new Set<string>();
+  for (const result of results) {
+    playedDates.add(result.date);
+  }
+
+  const today = new Date();
+  let streak = 0;
+  const current = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+  while (playedDates.has(formatDate(current))) {
+    streak += 1;
+    current.setDate(current.getDate() - 1);
+  }
+
+  return streak;
 }
 
 /**

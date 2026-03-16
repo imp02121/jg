@@ -22,10 +22,14 @@ export { ColumnsIcon } from "./ColumnsIcon";
 export { LightningIcon } from "./LightningIcon";
 export { CrystalBallIcon } from "./CrystalBallIcon";
 
+export { ArchIcon } from "./ArchIcon";
+export { LogoIcon } from "./LogoIcon";
+
 /* ── UI icons ──────────────────────────────────────────────────── */
 
 export { CheckIcon } from "./CheckIcon";
 export { CrossIcon } from "./CrossIcon";
+export { ChevronLeftIcon } from "./ChevronLeftIcon";
 export { ChevronRightIcon } from "./ChevronRightIcon";
 export { ClockIcon } from "./ClockIcon";
 export { TrophyIcon } from "./TrophyIcon";
@@ -54,7 +58,9 @@ export { ShieldNavyIcon } from "./ShieldNavyIcon";
 
 /* ── Import all for registry ───────────────────────────────────── */
 
+import { ArchIcon } from "./ArchIcon";
 import { BackpackIcon } from "./BackpackIcon";
+import { LogoIcon } from "./LogoIcon";
 import { ColumnsIcon } from "./ColumnsIcon";
 import { CrownIcon } from "./CrownIcon";
 import { CrystalBallIcon } from "./CrystalBallIcon";
@@ -64,6 +70,7 @@ import { ScrollIcon } from "./ScrollIcon";
 import { WheatIcon } from "./WheatIcon";
 
 import { CheckIcon } from "./CheckIcon";
+import { ChevronLeftIcon } from "./ChevronLeftIcon";
 import { ChevronRightIcon } from "./ChevronRightIcon";
 import { ClockIcon } from "./ClockIcon";
 import { CrossIcon } from "./CrossIcon";
@@ -95,6 +102,8 @@ import { ShieldOliveIcon } from "./ShieldOliveIcon";
  */
 export const ICON_REGISTRY: Record<string, React.ComponentType<IconProps>> = {
   /* Rank icon keys */
+  arch: ArchIcon,
+  logo: LogoIcon,
   wheat: WheatIcon,
   quill: QuillIcon,
   backpack: BackpackIcon,
@@ -107,6 +116,7 @@ export const ICON_REGISTRY: Record<string, React.ComponentType<IconProps>> = {
   /* UI icon keys */
   check: CheckIcon,
   cross: CrossIcon,
+  "chevron-left": ChevronLeftIcon,
   "chevron-right": ChevronRightIcon,
   clock: ClockIcon,
   trophy: TrophyIcon,

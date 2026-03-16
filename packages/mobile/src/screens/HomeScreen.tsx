@@ -4,7 +4,8 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { LocalGameResult } from "@history-gauntlet/shared";
 
@@ -12,15 +13,24 @@ import { GauntletButton } from "../components/common/GauntletButton";
 import { OrnamentDivider } from "../components/common/OrnamentDivider";
 import { DailyGameCard } from "../components/home/DailyGameCard";
 import { StatsOverview } from "../components/home/StatsOverview";
+import { LogoIcon } from "../components/icons";
 import type { HomeScreenProps } from "../navigation/types";
+import { getCachedGame } from "../services/cache-service";
 import { getResultByDate } from "../services/game-storage";
 import { type AllTimeStats, getAllTimeStats } from "../services/stats-service";
-import { backgroundPrimary } from "../theme/colors";
-import { maxContentWidth, spacingXl, spacingXxl } from "../theme/spacing";
+import { backgroundPrimary, textPrimary } from "../theme/colors";
+import { maxContentWidth, spacingHuge, spacingLg, spacingMassive, spacingSection, spacingXl, spacingXxl } from "../theme/spacing";
+import {
+  fontFamilyPrimary,
+  fontSizeXxxl,
+  fontWeightBold,
+  letterSpacingWide,
+} from "../theme/typography";
 
 export function HomeScreen({ navigation }: HomeScreenProps): React.JSX.Element {
   const [todayResult, setTodayResult] = useState<LocalGameResult | null>(null);
   const [stats, setStats] = useState<AllTimeStats | null>(null);
+  const [hasGame, setHasGame] = useState(false);
   const todayStr = formatToday();
   const displayDate = formatDisplayDate(new Date());
 
@@ -28,10 +38,15 @@ export function HomeScreen({ navigation }: HomeScreenProps): React.JSX.Element {
     let cancelled = false;
 
     async function load() {
-      const [result, allStats] = await Promise.all([getResultByDate(todayStr), getAllTimeStats()]);
+      const [result, allStats, cached] = await Promise.all([
+        getResultByDate(todayStr),
+        getAllTimeStats(),
+        getCachedGame(todayStr),
+      ]);
       if (cancelled) return;
       setTodayResult(result);
       setStats(allStats);
+      setHasGame(cached !== null);
     }
 
     const unsubscribe = navigation.addListener("focus", () => {
@@ -50,7 +65,7 @@ export function HomeScreen({ navigation }: HomeScreenProps): React.JSX.Element {
     if (todayResult !== null) {
       navigation.navigate("Results", { resultId: todayResult.id });
     } else {
-      navigation.navigate("DifficultySelect");
+      navigation.navigate("TodaysGame");
     }
   }, [navigation, todayResult]);
 
@@ -58,14 +73,26 @@ export function HomeScreen({ navigation }: HomeScreenProps): React.JSX.Element {
     navigation.navigate("History");
   }, [navigation]);
 
-  const handlePlayPress = useCallback(() => {
-    navigation.navigate("DifficultySelect");
-  }, [navigation]);
+  function resolveGameState(): "unavailable" | "completed" | "ready" {
+    if (todayResult !== null) return "completed";
+    if (!hasGame) return "unavailable";
+    return "ready";
+  }
 
-  const gameState = todayResult !== null ? ("completed" as const) : ("ready" as const);
+  const gameState = resolveGameState();
+  const insets = useSafeAreaInsets();
 
   return (
-    <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.scrollView}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacingHuge }]}
+    >
+      <View style={styles.hero}>
+        <LogoIcon size={64} color={textPrimary} />
+        <Text style={styles.heroTitle}>THE HISTORY GAUNTLET</Text>
+        <OrnamentDivider width={80} />
+      </View>
+
       <DailyGameCard
         state={gameState}
         date={displayDate}
@@ -79,21 +106,12 @@ export function HomeScreen({ navigation }: HomeScreenProps): React.JSX.Element {
 
       {stats !== null && <StatsOverview stats={stats} testID="stats-overview" />}
 
-      <View style={styles.actions}>
-        <GauntletButton
-          title="BEGIN THE TRIAL"
-          onPress={handlePlayPress}
-          variant="primary"
-          testID="begin-trial-btn"
-        />
-
-        <GauntletButton
-          title="PAST CONQUESTS"
-          onPress={handleHistoryPress}
-          variant="secondary"
-          testID="history-btn"
-        />
-      </View>
+      <GauntletButton
+        title="PAST GAMES"
+        onPress={handleHistoryPress}
+        variant="secondary"
+        testID="history-btn"
+      />
     </ScrollView>
   );
 }
@@ -122,15 +140,24 @@ const styles = StyleSheet.create({
   content: {
     alignItems: "stretch",
     paddingHorizontal: spacingXxl,
-    paddingTop: spacingXxl + spacingXl,
-    paddingBottom: spacingXxl + spacingXl,
-    gap: spacingXxl,
+    paddingBottom: spacingSection,
+    gap: spacingMassive,
     maxWidth: maxContentWidth,
     alignSelf: "center",
     width: "100%",
   },
-  actions: {
-    gap: spacingXl,
+  hero: {
     alignItems: "center",
+    gap: spacingLg,
+    marginBottom: spacingXl,
+  },
+  heroTitle: {
+    fontFamily: fontFamilyPrimary,
+    fontSize: fontSizeXxxl,
+    fontWeight: fontWeightBold,
+    color: textPrimary,
+    letterSpacing: letterSpacingWide,
+    textAlign: "center",
+    textTransform: "uppercase",
   },
 });

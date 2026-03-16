@@ -9,7 +9,7 @@ import { type StyleProp, StyleSheet, Text, View, type ViewStyle } from "react-na
 
 import type { AllTimeStats } from "../../services/stats-service";
 
-import { accent, cardBgStart, cardBorder, textMuted, textPrimary } from "../../theme/colors";
+import { accent, cardBgStart, cardBorder, streak, textMuted, textPrimary } from "../../theme/colors";
 import { radiusLg, spacingLg, spacingMd, spacingSm, spacingXl } from "../../theme/spacing";
 import {
   fontFamilyPrimary,
@@ -21,7 +21,7 @@ import {
   letterSpacingNormal,
   letterSpacingWide,
 } from "../../theme/typography";
-import { StarIcon } from "../icons";
+import { FlameIcon, StarIcon } from "../icons";
 
 interface StatsOverviewProps {
   /** All-time aggregate statistics. */
@@ -51,15 +51,24 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ stats, style, test
       <Text style={styles.headerText}>Your Stats</Text>
     </View>
 
+    {stats.dailyStreak > 0 && (
+      <View style={styles.streakRow}>
+        <FlameIcon size={16} color={streak} />
+        <Text style={styles.streakText}>{String(stats.dailyStreak)} day streak</Text>
+      </View>
+    )}
+
     <View style={styles.grid}>
       <StatItem label="Games" value={String(stats.totalGames)} />
       <StatItem
-        label="Avg Score"
-        value={stats.totalGames > 0 ? stats.averageScore.toFixed(1) : "0"}
+        label="Avg Accuracy"
+        value={stats.totalGames > 0 ? `${Math.round(stats.averageAccuracy)}%` : "---"}
       />
-      <StatItem label="Best Score" value={String(stats.bestScore)} />
+      <StatItem
+        label="Best Accuracy"
+        value={stats.totalGames > 0 ? `${Math.round(stats.bestAccuracy)}%` : "---"}
+      />
       <StatItem label="Best Streak" value={String(stats.longestStreak)} />
-      <StatItem label="Questions" value={String(stats.totalQuestionsAnswered)} />
     </View>
   </View>
 );
@@ -85,6 +94,18 @@ const styles = StyleSheet.create({
     fontWeight: fontWeightSemibold,
     color: textPrimary,
     letterSpacing: letterSpacingNormal,
+  },
+  streakRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacingMd,
+    marginBottom: spacingLg,
+  },
+  streakText: {
+    fontFamily: fontFamilyPrimary,
+    fontSize: fontSizeBase,
+    fontWeight: fontWeightSemibold,
+    color: streak,
   },
   grid: {
     flexDirection: "row",

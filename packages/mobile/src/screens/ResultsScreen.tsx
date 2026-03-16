@@ -5,6 +5,7 @@
 
 import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { DifficultyTier, GameQuestion, LocalGameResult } from "@history-gauntlet/shared";
 import { DIFFICULTY_TIERS, getRankForPercent } from "@history-gauntlet/shared";
@@ -20,7 +21,7 @@ import type { ResultsScreenProps } from "../navigation/types";
 import { getCachedGame } from "../services/cache-service";
 import { getResultById } from "../services/game-storage";
 import { backgroundPrimary, textMuted, textPrimary } from "../theme/colors";
-import { maxContentWidth, spacingXl, spacingXxl } from "../theme/spacing";
+import { maxContentWidth, spacingMassive, spacingSection, spacingXl, spacingXxl } from "../theme/spacing";
 import {
   fontFamilyPrimary,
   fontSizeBase,
@@ -89,9 +90,13 @@ export function ResultsScreen({ navigation, route }: ResultsScreenProps): React.
   const pct = result.totalQuestions > 0 ? (result.score / result.totalQuestions) * 100 : 0;
   const rank = getRankForPercent(pct);
   const tierPerf = buildTierPerformance(result);
+  const insets = useSafeAreaInsets();
 
   return (
-    <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.scrollView}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacingSection }]}
+    >
       <Text style={styles.heading}>Trial Complete</Text>
 
       <RankDisplay rank={rank} testID="rank-display" />
@@ -123,7 +128,7 @@ export function ResultsScreen({ navigation, route }: ResultsScreenProps): React.
       <View style={styles.actions}>
         <GauntletButton
           title="PLAY AGAIN"
-          onPress={() => navigation.navigate("DifficultySelect")}
+          onPress={() => navigation.navigate("TodaysGame")}
           variant="primary"
           testID="play-again-btn"
         />
@@ -196,9 +201,8 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: spacingXxl,
-    paddingTop: spacingXxl + spacingXl,
-    paddingBottom: spacingXxl + spacingXl,
-    gap: spacingXxl,
+    paddingBottom: spacingSection,
+    gap: spacingMassive,
     maxWidth: maxContentWidth,
     alignSelf: "center",
     width: "100%",

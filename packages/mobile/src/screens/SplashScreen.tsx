@@ -6,7 +6,7 @@
  * Falls back to a cached game on error, or shows an offline message.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { LoadingSpinner } from "../components/common/LoadingSpinner";
@@ -14,11 +14,10 @@ import { ColumnsIcon } from "../components/icons";
 import type { SplashScreenProps } from "../navigation/types";
 import { createApiClient } from "../services/api-client";
 import { cacheDailyGame, getCachedGame } from "../services/cache-service";
-import { backgroundPrimary, textPrimary, wrongText } from "../theme/colors";
+import { backgroundPrimary, textPrimary } from "../theme/colors";
 import { spacingLg, spacingXxl } from "../theme/spacing";
 import {
   fontFamilyPrimary,
-  fontSizeBase,
   fontSizeXxxl,
   fontWeightBold,
   letterSpacingWide,
@@ -28,43 +27,45 @@ import { config } from "../config";
 
 const api = createApiClient({ baseUrl: config.apiBaseUrl });
 
-type LoadResult = { status: "ok" } | { status: "error"; message: string };
+/**
+ * Attempt to fetch and cache today's game. Always resolves —
+ * failures are logged but never block navigation to Home.
+ */
+async function fetchAndCacheDailyGame(): Promise<void> {
+  const todayStr = formatToday();
 
-async function fetchOrLoadCachedGame(): Promise<LoadResult> {
   try {
+    console.log("[SplashScreen] Fetching daily game...");
     const game = await api.fetchDailyGame();
+    console.log("[SplashScreen] Daily game fetched, caching for", game.date);
     await cacheDailyGame(game);
-    return { status: "ok" };
-  } catch {
-    const todayStr = formatToday();
+  } catch (err: unknown) {
     const cached = await getCachedGame(todayStr);
     if (cached !== null) {
-      return { status: "ok" };
+      console.log("[SplashScreen] API failed but cached game found for", todayStr);
+      return;
     }
-    return {
-      status: "error",
-      message: "Unable to connect. Please check your connection and try again.",
-    };
+
+    if (err instanceof Error) {
+      console.log("[SplashScreen] No game available:", err.message);
+    } else {
+      console.log("[SplashScreen] No game available (unknown error)");
+    }
   }
 }
 
 export function SplashScreen({ navigation }: SplashScreenProps): React.JSX.Element {
-  const [error, setError] = useState<string | null>(null);
-
   useEffect(() => {
     let cancelled = false;
 
-    async function loadDailyGame() {
-      const result = await fetchOrLoadCachedGame();
-      if (cancelled) return;
-      if (result.status === "ok") {
+    async function loadAndNavigate() {
+      await fetchAndCacheDailyGame();
+      if (!cancelled) {
         navigation.replace("Home");
-      } else {
-        setError(result.message);
       }
     }
 
-    void loadDailyGame();
+    void loadAndNavigate();
 
     return () => {
       cancelled = true;
@@ -75,12 +76,7 @@ export function SplashScreen({ navigation }: SplashScreenProps): React.JSX.Eleme
     <View style={styles.container}>
       <ColumnsIcon size={64} color={textPrimary} />
       <Text style={styles.title}>THE HISTORY GAUNTLET</Text>
-
-      {error !== null ? (
-        <Text style={styles.error}>{error}</Text>
-      ) : (
-        <LoadingSpinner label="Preparing today's challenge..." style={styles.spinner} />
-      )}
+      <LoadingSpinner label="Preparing today's challenge..." style={styles.spinner} />
     </View>
   );
 }
@@ -113,11 +109,5 @@ const styles = StyleSheet.create({
   },
   spinner: {
     marginTop: spacingXxl,
-  },
-  error: {
-    marginTop: spacingXxl,
-    fontSize: fontSizeBase,
-    color: wrongText,
-    textAlign: "center",
   },
 });

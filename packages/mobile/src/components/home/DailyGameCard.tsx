@@ -25,9 +25,9 @@ import {
 } from "../../theme/typography";
 import { Card } from "../common/Card";
 import { GauntletButton } from "../common/GauntletButton";
-import { TrophyIcon } from "../icons";
+import { ScrollIcon, TrophyIcon } from "../icons";
 
-type GameState = "ready" | "in-progress" | "completed";
+type GameState = "ready" | "in-progress" | "completed" | "unavailable";
 
 interface DailyGameCardProps {
   /** Current state of today's game. */
@@ -45,6 +45,15 @@ interface DailyGameCardProps {
   /** Test identifier for testing frameworks. */
   testID?: string;
 }
+
+const UnavailableContent: React.FC<{ date: string }> = ({ date }) => (
+  <View style={styles.content}>
+    <Text style={styles.dateLabel}>{date}</Text>
+    <ScrollIcon size={32} color={textMuted} />
+    <Text style={styles.title}>No Challenge Today</Text>
+    <Text style={styles.subtitle}>Check back tomorrow for a new trial</Text>
+  </View>
+);
 
 const ReadyContent: React.FC<{ date: string; onPress: () => void }> = ({ date, onPress }) => (
   <View style={styles.content}>
@@ -115,6 +124,7 @@ export const DailyGameCard: React.FC<DailyGameCardProps> = ({
   testID,
 }) => (
   <Card style={style} testID={testID}>
+    {state === "unavailable" && <UnavailableContent date={date} />}
     {state === "ready" && <ReadyContent date={date} onPress={onPress} />}
     {state === "in-progress" && <InProgressContent date={date} onPress={onPress} />}
     {state === "completed" && (

@@ -11,12 +11,12 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import { DifficultySelectScreen } from "../screens/DifficultySelectScreen";
 import { GameScreen } from "../screens/GameScreen";
 import { HistoryScreen } from "../screens/HistoryScreen";
 import { HomeScreen } from "../screens/HomeScreen";
 import { ResultsScreen } from "../screens/ResultsScreen";
 import { SplashScreen } from "../screens/SplashScreen";
+import { TodaysGameScreen } from "../screens/TodaysGameScreen";
 import { getDatabase } from "../services/local-db";
 import { initializeOta, safeNotifyAppReady } from "../services/ota-service";
 import type { RootStackParamList } from "./types";
@@ -73,7 +73,7 @@ export function RootNavigator(): React.JSX.Element {
         <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Splash" component={SplashScreen} />
           <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="DifficultySelect" component={DifficultySelectScreen} />
+          <Stack.Screen name="TodaysGame" component={TodaysGameScreen} />
           <Stack.Screen name="Game" component={GameScreen} />
           <Stack.Screen name="Results" component={ResultsScreen} />
           <Stack.Screen name="History" component={HistoryScreen} />
